@@ -71,12 +71,12 @@ class SboomWrapper:
     --------
 
     """
-    def __init__(self, directory):
+    def __init__(self, directory, exe="sboom_linux"):
         # self._title = title
         self._directory = directory+"/sBOOM/"
         self._parameters = self._init_parameters()
         self._results = {}
-        self._sboom_exec = "sboom_linux"
+        self._sboom_exec = exe
 
     def _init_parameters(self):
         parameters = OrderedDict([["signature", None],
@@ -192,7 +192,7 @@ class SboomWrapper:
         os.makedirs(self._directory)
 
         # copy in panair.exec
-        executable = './'+self._sboom_exec
+        executable = os.path.join(os.path.dirname(__file__), "..", self._sboom_exec)
         if os.path.isfile(executable):
             shutil.copy2(executable, self._directory)
         else:
