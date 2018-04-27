@@ -22,9 +22,9 @@ class AxieBump:
 
         # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
         # import AXIE geometry from file
-        data_dir = os.path.dirname(__file__)+"/../misc/"
+        data_dir = os.path.join(os.path.dirname(__file__), "..", "misc")
         print(data_dir)
-        geometry = np.genfromtxt(data_dir+"axie-geom-v1-mm.dat")
+        geometry = np.genfromtxt(os.path.join(data_dir, "axie-geom-v1-mm.dat"))
         self._x_geom = geometry[:, 0]
         self._r_geom = geometry[:, 1]
         self._x_geom *= 0.001  # meters
