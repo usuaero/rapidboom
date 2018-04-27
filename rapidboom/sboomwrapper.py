@@ -77,6 +77,7 @@ class SboomWrapper:
         self._parameters = self._init_parameters()
         self._results = {}
         self._sboom_exec = exe
+        self._sboom_loc = os.path.join(os.path.dirname(__file__), "..")
 
     def _init_parameters(self):
         parameters = OrderedDict([["signature", None],
@@ -252,7 +253,7 @@ class SboomWrapper:
             #         f.write(self._format_opt(val)+"   "+name+"\n")
 
     def _call_executable(self):
-        p = subprocess.call('./'+self._sboom_exec, cwd=self._directory)
+        p = subprocess.call(os.path.join(self._sboom_loc, self._sboom_exec), cwd=self._directory)
 
     def _parse_outputfile(self):
         num_signals = self._parameters["num_azimuthal"]
