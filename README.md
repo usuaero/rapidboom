@@ -103,6 +103,21 @@ def run(optimization_var):
     return noise_level
 ```
 
+This case specific case has also been included in the uli_cases module and can
+be imported and ran by simply using the code below.
+
+```python
+from rapidboom import AxieBump
+
+bump_case = AxieBump(case_dir='./', panair_exec='panair.exe', sboom_exec='sboom.dat.allow')
+loudness = bump_case.run([.1, 20., 6.])
+
+print(loudness)
+```
+
+Note that this code is currently returning the C-weighted loudness and not the perceived 
+loudness.
+
 ## Notes
 
 sBOOM is NASA software with it's distribution controlled by them. The sBOOM
