@@ -1,5 +1,6 @@
 """Implements axie bump case."""
 from rapidboom.sboomwrapper import SboomWrapper
+from rapidboom.pyldb import PyLdB
 import rapidboom.parametricgeometry as pg
 import panairwrapper
 import os
@@ -18,12 +19,12 @@ class AxieBump:
         MACH = 1.6
         R_over_L = 1
 
-        self.MESH_COARSEN_TOL = 0.00001
+        self.MESH_COARSEN_TOL = 0.000035
+        self.N_TANGENTIAL = 20
 
         # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
         # import AXIE geometry from file
         data_dir = os.path.join(os.path.dirname(__file__), "..", "misc")
-        print(data_dir)
         geometry = np.genfromtxt(os.path.join(data_dir, "axie-geom-v1-mm.dat"))
         self._x_geom = geometry[:, 0]
         self._r_geom = geometry[:, 1]
@@ -72,7 +73,7 @@ class AxieBump:
                                                                 self.MESH_COARSEN_TOL, 5.)
 
         # pass in the new R(x) into panair axie surface function
-        networks = panairwrapper.mesh_tools.axisymmetric_surf(x_final, r_final, 10)
+        networks = panairwrapper.mesh_tools.axisymmetric_surf(x_final, r_final, self.N_TANGENTIAL)
 
         # update Panair settings and run
         self._panair.clear_networks()
@@ -82,7 +83,7 @@ class AxieBump:
             panair_results = self._panair.run()
         except RuntimeError:
             # if panair blows up, return default high value
-            return 120.
+            return 999.
 
         offbody_data = panair_results.get_offbody_data()
         nearfield_sig = np.array([offbody_data[:, 2], 1.792*offbody_data[:, -2]]).T
@@ -92,8 +93,10 @@ class AxieBump:
         # update sBOOM settings and run
         self._sboom.set(signature=nearfield_sig)
         sboom_results = self._sboom.run()
+        ground_sig = sboom_results["signal_0"]["ground_sig"]
 
         # grab the loudness level
-        noise_level = sboom_results["signal_0"]["C_weighted"]
+        # noise_level = sboom_results["signal_0"]["C_weighted"]
+        noise_level = PyLdB(ground_sig[:, 0], ground_sig[:, 1])
 
         return noise_level

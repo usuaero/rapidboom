@@ -194,8 +194,8 @@ def SigProc(T,P):
             Pow_range = PowerOne[sectionloc[0][0]:sectionloc[0][-1]+1]
             f_range = (freqOne[sectionloc[0][0]:sectionloc[0][-1]+1])
             E[j] = integrate.trapz(Pow_range,x=f_range)
-    print(pcheck,Echeck)
-    print(100.*np.abs(Echeck-pcheck)/Echeck,"%")
+    # print(pcheck,Echeck)
+    # print(100.*np.abs(Echeck-pcheck)/Echeck,"%")
     E /= 0.07
     L = 10*np.log10(E/(po**2)) - 3  #Definition of dB is based on some reference pressure
 #    plt.figure(3, figsize = (4.25*2.,2.125*2.))
@@ -214,7 +214,7 @@ def SigProc(T,P):
 #    plt.ylim((L.min() + L.min()/10.,L.max()+L.max()/10.))
 #    plt.yticks(family = 'serif',fontsize = 12)
 #    plt.savefig('ExLp.pdf',dpi = 2000)
-    print(E)
+    # print(E)
     Leq = np.zeros(len(L))
     for i in range(len(L)):
         if i > 39:
@@ -278,9 +278,9 @@ def SigProc(T,P):
 #    plt.savefig('ExSones.pdf',dpi = 2000)
     Fmax = np.interp(Sones.max(),SonesF,F, left = 0.0,right = F[-1])
     S_t = Sones.max() + Fmax*(sum(Sones) - Sones.max())
-    print(Leq)
+    # print(Leq)
     PLdB = 32.0 + 9.0*np.log2(S_t)
-    print(PLdB, "PLdB")
+    # print(PLdB, "PLdB")
     return PLdB
 
 def window(P,xpoints):
@@ -316,5 +316,5 @@ def PyLdB(T,P):
     np.set_printoptions(threshold=np.nan)    
     PLdB = SigProc(T,P)
     t1 = time.time()
-    print(t1-t0)
+    # print(t1-t0)
     return PLdB
