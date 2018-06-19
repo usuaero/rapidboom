@@ -19,8 +19,9 @@ def test_axie_bump_case():
         raise RuntimeError("platfrom not recognized")
 
     axiebump = AxieBump(CASE_DIR, PANAIR_EXE, SBOOM_EXE)
-    axiebump.MESH_COARSEN_TOL = 0.00005
+    axiebump.MESH_COARSEN_TOL = 0.0001
+    axiebump.N_TANGENTIAL = 10
     loudness = axiebump.run([0.1, 20., 6.])
 
-    print("C-weighted loudness", loudness)
-    assert(loudness - 93.54010125368868 < 0.01)
+    print("perceived loudness (PLdB) ", loudness)
+    assert(abs(loudness - 84.24609968925941) < 0.01)
