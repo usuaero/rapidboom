@@ -116,7 +116,10 @@ class SboomWrapper:
         """Sets case parameters.
 
         Any of the case parameters can be set via this function by passing
-        them in as keyword arguments.
+        them in as keyword arguments. All inputs are floats except for 
+        'input_wind', 'input_temp', and 'input_humidity' which are lists
+        of the following format:
+            [[altitude_0, property_0], ..., [altitude_n, property_n]]
 
         These keywords along with the default values are listed below.
 
@@ -234,10 +237,27 @@ class SboomWrapper:
 
     def _write_parameter_file(self, f):
         for name, option in self._parameters.items():
+            print(name, option)
             if name == "signature":
                 pass
             else:
-                f.write('{0:<10}'.format(option)+"   "+name+"\n")
+                if name in ["input_temp", "input_wind","input_humidity"] and option != 0:
+                    f.write('{0:<10}'.format(1)+"   "+name+"\n")
+                    if name =="input_wind":
+                        # For X wind
+                        f.write('{}'.format(len(option))+"\n")
+                        for i in range(len(option)):
+                            f.write('{0:<8}{1}'.format(option[i][0], option[i][1])+"\n")
+                        # For Y wind
+                        f.write('{}'.format(len(option))+"\n")
+                        for i in range(len(option)):
+                            f.write('{0:<8}{1}'.format(option[i][0], option[i][2])+"\n")                              
+                    else:
+                        f.write('{}'.format(len(option))+"\n")
+                        for i in range(len(option)):
+                            f.write('{0:<8}{1}'.format(option[i][0], option[i][1])+"\n")
+                else:    
+                    f.write('{0:<10}'.format(option)+"   "+name+"\n")
             # elif name == "signature_filename":
             #     f.write(self._format_opt(option)+"   "+name+"\n")
             # else:
