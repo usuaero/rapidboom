@@ -53,7 +53,7 @@ import numpy as np
 import os
 import subprocess
 import shutil
-
+import time
 
 class SboomWrapper:
     """The primary access point for specifying and running a case.
@@ -116,10 +116,7 @@ class SboomWrapper:
         """Sets case parameters.
 
         Any of the case parameters can be set via this function by passing
-        them in as keyword arguments. All inputs are floats except for 
-        'input_wind', 'input_temp', and 'input_humidity' which are lists
-        of the following format:
-            [[altitude_0, property_0], ..., [altitude_n, property_n]]
+        them in as keyword arguments.
 
         These keywords along with the default values are listed below.
 
@@ -175,6 +172,7 @@ class SboomWrapper:
 
         """
         if overwrite:
+            time.sleep(0.2)
             self._create_dir()
             self._write_inputfile()
             self._call_executable()
@@ -189,19 +187,25 @@ class SboomWrapper:
         #     raise RuntimeError("Run not successful. Check panair.out for cause")
 
     def _create_dir(self):
-        if os.path.exists(self._directory):
-            shutil.rmtree(self._directory)
+        no_success = True
+        while no_success:
+            try:
+                if os.path.exists(self._directory):
+                    shutil.rmtree(self._directory)
 
-        # create directory for case
-        os.makedirs(self._directory)
+                # create directory for case
+                os.makedirs(self._directory)
 
-        # copy in panair.exec
-        executable = os.path.join(os.path.dirname(__file__), "..", self._sboom_exec)
-        if os.path.isfile(executable):
-            shutil.copy2(executable, self._directory)
-        else:
-            raise RuntimeError("sboom executable not found")
-
+                # copy in panair.exec
+                executable = os.path.join(os.path.dirname(__file__), "..", self._sboom_exec)
+                if os.path.isfile(executable):
+                    shutil.copy2(executable, self._directory)
+                else:
+                    raise RuntimeError("sboom executable not found")
+                no_success = False
+            except: 
+                no_success = True
+                
     def _write_inputfile(self):
         sig_filename = self._directory+self._parameters["signature_filename"]
         input_filename = self._directory+"presb.input"
@@ -237,7 +241,6 @@ class SboomWrapper:
 
     def _write_parameter_file(self, f):
         for name, option in self._parameters.items():
-            print(name, option)
             if name == "signature":
                 pass
             else:
@@ -273,7 +276,10 @@ class SboomWrapper:
             #         f.write(self._format_opt(val)+"   "+name+"\n")
 
     def _call_executable(self):
-        p = subprocess.call(os.path.join(self._sboom_loc, self._sboom_exec), cwd=self._directory)
+        
+        while not os.path.isfile(self._directory+"loud.dat"):
+            
+            p = subprocess.call(os.path.join(self._sboom_loc, self._sboom_exec), cwd=self._directory)
 
     def _parse_outputfile(self):
         num_signals = self._parameters["num_azimuthal"]
