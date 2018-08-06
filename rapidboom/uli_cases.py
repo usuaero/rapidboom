@@ -1,6 +1,6 @@
 """Implements axie bump case."""
 from rapidboom.sboomwrapper import SboomWrapper
-from rapidboom.pyldb import perceivedloudness
+import pyldb
 import rapidboom.parametricgeometry as pg
 import panairwrapper
 import os
@@ -97,6 +97,6 @@ class AxieBump:
 
         # grab the loudness level
         # noise_level = sboom_results["signal_0"]["C_weighted"]
-        noise_level = perceivedloudness(ground_sig[:, 0], ground_sig[:, 1])
+        noise_level = pyldb.perceivedloudness(ground_sig[:, 0], ground_sig[:, 1])
 
         return noise_level
