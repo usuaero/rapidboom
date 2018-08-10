@@ -3,7 +3,8 @@
 This package provides a set of tools for rapid prediction of sonic boom
 loudness on the ground from a parametric geometry description. Currently,
 these tools are intended to be used in conjuction with the panairwrapper code
-which performs the aerodynamic calculations. 
+which performs the aerodynamic calculations and the PyLdB code for calculating
+the perceived loudness.
 
 The primary purpose of these tools is to automate the entire process of
 obtaining the sonic boom loudness on the ground so that it can easily
@@ -12,10 +13,11 @@ be integrated into multidisciplinary design and optimization codes.
 The following code demonstrates how this package might be used in a 
 Python script. This specific example demonstrates adding a parametric
 bump to an existing axisymmetric geometry to determine how it will affect
-C-weighted loudness at the ground.
+perceived loudness at the ground.
 
 ```python
 from rapidboom.sboomwrapper import SboomWrapper
+import pyldb
 import rapidboom.parametricgeometry as pg
 import panairwrapper
 
@@ -28,6 +30,7 @@ CASE_DIR = "./axie_bump/"
 
 REF_LENGTH = 32.92
 MACH = 1.6
+gamma = 1.4
 R_over_L = 1
 
 # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
@@ -39,7 +42,8 @@ x_geom *= 0.001  # meters
 r_geom *= 0.001  # meters
 
 # initialize Panair
-panair = panairwrapper.PanairWrapper('axie', CASE_DIR)
+panair = panairwrapper.PanairWrapper('axie', CASE_DIR, 
+                                     exe='panair')
 panair.set_aero_state(MACH)
 panair.set_sensor(MACH, R_over_L, REF_LENGTH)
 panair.set_symmetry(1, 1)
@@ -89,18 +93,21 @@ def run(optimization_var):
         return 120
 
     offbody_data = panair_results.get_offbody_data()
-    nearfield_sig = np.array([offbody_data[:, 2], 1.792*offbody_data[:, -2]]).T
+    distance_along_sensor = offbody_data[:, 2]
+    dp_over_p = 0.5*gamma*MACH**2*offbody_data[:, -2]
+    nearfield_sig = np.array([distance_along_sensor, dp_over_p]).T
     # plt.plot(nearfield_sig[:, 0], nearfield_sig[:, 1])
     # plt.show()
 
     # update sBOOM settings and run
     sboom.set(signature=nearfield_sig)
     sboom_results = sboom.run()
+    ground_sig = sboom_results["signal_0"]["ground_sig"]
 
     # grab the loudness level
-    noise_level = sboom_results["signal_0"]["C_weighted"]
+    loudness_level = pyldb.perceivedloudness(ground_sig[:, 0], ground_sig[:, 1])
 
-    return noise_level
+    return loudness_level
 ```
 
 This case specific case has also been included in the uli_cases module and can
@@ -114,9 +121,6 @@ loudness = bump_case.run([.1, 20., 6.])
 
 print(loudness)
 ```
-
-Note that this code is currently returning the C-weighted loudness and not the perceived 
-loudness.
 
 ## Notes
 
@@ -132,7 +136,7 @@ See doc strings in code.
 
 ## Installation
 
-Run either of the following commands in the main directory.
+Run either of the following commands in the main rapidboom folder.
 
 'pip install .'
 or
@@ -145,6 +149,10 @@ or
 'python setup.py develop'
 
 It is recommended that pip is used instead of invoking setup.py directly.
+
+Additionaly, the sBOOM executable needs to be copied into the main rapidboom
+folder. The name of the executable may vary by system and its name on your
+system must be specified when initializing the SboomWrapper class. 
 
 ### Prerequisites
 
@@ -179,8 +187,8 @@ Unit tests are implemented using the pytest module and are run using the followi
 
 'python3 -m pytest test/'
 
-##Support
+## Support
 Contact doug.hunsaker@usu.edu with any questions.
 
-##License
+## License
 This project is licensed under the MIT license. See LICENSE file for more information. 
