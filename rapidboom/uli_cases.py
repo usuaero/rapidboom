@@ -17,6 +17,7 @@ class AxieBump:
         SBOOM_EXEC = sboom_exec
         REF_LENGTH = 32.92
         MACH = 1.6
+        gamma = 1.4
         R_over_L = 1
 
         self.MESH_COARSEN_TOL = 0.000035
@@ -86,7 +87,9 @@ class AxieBump:
             return 999.
 
         offbody_data = panair_results.get_offbody_data()
-        nearfield_sig = np.array([offbody_data[:, 2], 1.792*offbody_data[:, -2]]).T
+        distance_along_sensor = offbody_data[:, 2]
+        dp_over_p = 0.5*gamma*MACH**2*offbody_data[:, -2]
+        nearfield_sig = np.array([distance_along_sensor, dp_over_p]).T
         # plt.plot(nearfield_sig[:, 0], nearfield_sig[:, 1])
         # plt.show()
 
