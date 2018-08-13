@@ -187,6 +187,9 @@ Unit tests are implemented using the pytest module and are run using the followi
 
 'python3 -m pytest test/'
 
+Note: The tests have been written to assume that the executable name for sBOOM is sboom_linux for Linux and 
+sboom_windows.dat.allow for Windows.
+
 ## Support
 Contact doug.hunsaker@usu.edu with any questions.
 
