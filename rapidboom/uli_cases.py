@@ -146,7 +146,7 @@ class DeltaWing:
         self._panair = panairwrapper.PanairWrapper('deltawing', case_dir,
                                                    exe=panair_exec)
         self._panair.set_aero_state(self.MACH)
-        self._panair.set_sensor(self.MACH, R_over_L, REF_LENGTH)
+        self._panair.set_sensor(self.MACH, R_over_L, REF_LENGTH, 4.)
         self._panair.set_symmetry(1, 0)
         self._panair.set_reference_data(1., 1., 1.)
 
