@@ -116,9 +116,11 @@ class DeltaWing:
         Al = np.array([0.163339, 0.175407, 0.134176, 0.152834, 0.133240, 0.161677])
 
         span = 2.
+        chord_r = 1.
+        chord_t = .3
         self._cp = ControlPoints()
         self._cp.set(half_span=span/2.,
-                     chord=[1., .3],
+                     chord=[chord_r, chord_t],
                      twist=[0, 0],
                      shear=[0, .1],
                      sweep=[0, 2.],
@@ -148,7 +150,9 @@ class DeltaWing:
         self._panair.set_aero_state(self.MACH)
         self._panair.set_sensor(self.MACH, R_over_L, REF_LENGTH, 4.)
         self._panair.set_symmetry(1, 0)
-        self._panair.set_reference_data(1., 1., 1.)
+        chord_avg = (chord_r+chord_t)/2.
+        planform_area = span*chord_avg
+        self._panair.set_reference_data(planform_area, span, chord_avg)
 
         # initialize sBOOM
         self._sboom = SboomWrapper(case_dir, exe=sboom_exec)
@@ -181,7 +185,6 @@ class DeltaWing:
                                        angle_of_attack=self.aoa)
 
         # update Panair settings and run
-        self._panair.set_reference_data(1., 1., 1.)
         self._panair.clear_networks()
         self._panair.add_network("upper", upper_xyz)
         self._panair.add_network("lower", lower_xyz)
