@@ -264,7 +264,9 @@ class WingBody:
         chord = variables.get('chord', [1.5, 0.4])
         sweep_angle = variables.get('sweep', 56.)
         sweep = [0., -np.tan(sweep_angle*np.pi/180.)]
-        dihedral = variables.get('dihedral', [0., .0])
+        dihedral_angle = variables.get('dihedral', 0.)
+        dihedral_u = [0., np.tan(dihedral_angle*np.pi/180.)]
+        dihedral_l = [0., -np.tan(dihedral_angle*np.pi/180.)]
 
         # fuselage parameters
         length = 4.
@@ -275,7 +277,8 @@ class WingBody:
         f_sy_lower = cst.BernstienPolynomial(5, [0.163339, 0.175407, 0.134176,
                                                  0.152834, 0.133240, 0.161677])
         f_etashear = cst.piecewise_linear(eta_cp, sweep)
-        f_zetashear = cst.piecewise_linear(eta_cp, dihedral)
+        f_zetashear_u = cst.piecewise_linear(eta_cp, dihedral_u)
+        f_zetashear_l = cst.piecewise_linear(eta_cp, dihedral_l)
 
         wing_upper = cst.CST3D(rotation=(0., 0., 90.),
                                location=(1.5, 0., 0.),
@@ -286,7 +289,7 @@ class WingBody:
                                sy=f_sy_upper,
                                ny=(1., 1.),
                                etashear=f_etashear,
-                               zetashear=f_zetashear)
+                               zetashear=f_zetashear_u)
 
         wing_lower = cst.CST3D(rotation=(0., 0., 90.),
                                location=(1.5, 0., 0.),
@@ -297,7 +300,7 @@ class WingBody:
                                sy=f_sy_lower,
                                ny=(1., 1.),
                                etashear=f_etashear,
-                               zetashear=f_zetashear)
+                               zetashear=f_zetashear_l)
 
         fuselage = cst.CST3D(rotation=(-90., 0., 0.),
                              XYZ=(length, 1.5, 1.5),
