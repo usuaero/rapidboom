@@ -41,7 +41,7 @@ class AxieBump:
         self._panair = panairwrapper.PanairWrapper('wingbody', CASE_DIR,
                                                    exe=PANAIR_EXEC)
         self._panair.set_aero_state(self.MACH, self.aoa)
-        self._panair.set_sensor(self.MACH, R_over_L, REF_LENGTH)
+        self._panair.set_sensor(self.MACH, self.aoa, R_over_L, REF_LENGTH)
         self._panair.set_symmetry(1, 1)
         # self._panair.add_network('axie_surface', None)
         # panair.add_sensor(r_over_l=3)
@@ -88,7 +88,7 @@ class AxieBump:
         for i, n in enumerate(self._networks):
             self._panair.add_network('surface'+str(i), n, xy_indexing=True)
         try:
-            panair_results = self._panair.run(overwrite=False)
+            panair_results = self._panair.run(overwrite=True)
         except RuntimeError:
             # if panair blows up, return default high value
             return 999.
@@ -96,20 +96,22 @@ class AxieBump:
         offbody_data = panair_results.get_offbody_data()
         distance_along_sensor = offbody_data[:, 2]
         dp_over_p = 0.5*self.gamma*self.MACH**2*offbody_data[:, -2]
-        nearfield_sig = np.array([distance_along_sensor, dp_over_p]).T
-        plt.plot(nearfield_sig[:, 0], nearfield_sig[:, 1])
-        plt.show()
+        nf_sig = np.array([distance_along_sensor, dp_over_p]).T
+        # plt.plot(nearfield_sig[:, 0], nearfield_sig[:, 1])
+        # plt.show()
+        self.nearfield_sig = nf_sig
 
         # update sBOOM settings and run
-        self._sboom.set(signature=nearfield_sig)
+        self._sboom.set(signature=nf_sig)
         sboom_results = self._sboom.run()
-        ground_sig = sboom_results["signal_0"]["ground_sig"]
-        plt.plot(ground_sig[:, 0], ground_sig[:, 1])
+        g_sig = sboom_results["signal_0"]["ground_sig"]
+        plt.plot(g_sig[:, 0], g_sig[:, 1])
         plt.show()
+        self.ground_sig = g_sig
 
         # grab the loudness level
         # noise_level = sboom_results["signal_0"]["C_weighted"]
-        noise_level = pyldb.perceivedloudness(ground_sig[:, 0], ground_sig[:, 1], pad_rear=2000)
+        noise_level = pyldb.perceivedloudness(g_sig[:, 0], g_sig[:, 1], pad_rear=4)
 
         return noise_level
 
