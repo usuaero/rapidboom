@@ -105,8 +105,8 @@ class AxieBump:
         self._sboom.set(signature=nf_sig)
         sboom_results = self._sboom.run()
         g_sig = sboom_results["signal_0"]["ground_sig"]
-        plt.plot(g_sig[:, 0], g_sig[:, 1])
-        plt.show()
+        # plt.plot(g_sig[:, 0], g_sig[:, 1])
+        # plt.show()
         self.ground_sig = g_sig
 
         # grab the loudness level
