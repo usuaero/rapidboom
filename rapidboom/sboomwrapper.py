@@ -77,7 +77,10 @@ class SboomWrapper:
         self._parameters = self._init_parameters()
         self._results = {}
         self._sboom_exec = exe
-        self._sboom_loc = os.path.join(os.path.dirname(__file__), "..")
+        if os.name == 'nt':
+            self._sboom_loc = os.path.dirname(__file__)
+        else:
+            self._sboom_loc = os.path.join(os.path.dirname(__file__), "..")
 
     def _init_parameters(self):
         parameters = OrderedDict([["signature", None],
@@ -197,7 +200,10 @@ class SboomWrapper:
                 os.makedirs(self._directory)
 
                 # copy in panair.exec
-                executable = os.path.join(os.path.dirname(__file__), "..", self._sboom_exec)
+                if os.name == 'nt':
+                    executable = os.path.join(os.path.dirname(__file__), self._sboom_exec)
+                else:
+                    executable = os.path.join(os.path.dirname(__file__), '..', self._sboom_exec)
                 if os.path.isfile(executable):
                     shutil.copy2(executable, self._directory)
                 else:
@@ -278,7 +284,6 @@ class SboomWrapper:
     def _call_executable(self):
         
         while not os.path.isfile(self._directory+"loud.dat"):
-            
             p = subprocess.call(os.path.join(self._sboom_loc, self._sboom_exec), cwd=self._directory)
 
     def _parse_outputfile(self):
