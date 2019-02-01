@@ -24,5 +24,4 @@ def test_axie_bump_case():
     loudness = axiebump.run([0.1, 20., 6.])
 
     print("perceived loudness (PLdB) ", loudness)
-    assert(abs(loudness - 83.76499170522584) < 0.01)
-
+    assert(abs(loudness - 83.77633272823229) < 0.01)
