@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt
 
 class AxieBump:
     def __init__(self, case_dir='./', panair_exec='panair',
-                 sboom_exec='sboom_linux'):
+                 sboom_exec='sboom_linux', weather='standard',
+                 altitude=51706.037):
         CASE_DIR = case_dir
         PANAIR_EXEC = panair_exec
         SBOOM_EXEC = sboom_exec
@@ -23,6 +24,7 @@ class AxieBump:
         self.MACH = 1.6
         self.aoa = 0.
         self.gamma = 1.4
+        self.altitude = altitude
         R_over_L = 5
 
         self.MESH_COARSEN_TOL = 0.000035
@@ -41,21 +43,33 @@ class AxieBump:
         self._panair = panairwrapper.PanairWrapper('wingbody', CASE_DIR,
                                                    exe=PANAIR_EXEC)
         self._panair.set_aero_state(self.MACH, self.aoa)
-        self._panair.set_sensor(self.MACH, self.aoa, R_over_L, REF_LENGTH)
+        self._panair.set_sensor(self.MACH, self.aoa, R_over_L, REF_LENGTH, n_lengths=1)
         self._panair.set_symmetry(1, 1)
         # self._panair.add_network('axie_surface', None)
         # panair.add_sensor(r_over_l=3)
 
         # initialize sBOOM
         self._sboom = SboomWrapper(CASE_DIR, exe=SBOOM_EXEC)
+
         self._sboom.set(mach_number=self.MACH,
-                        altitude=51706.037,
+                        altitude=self.altitude,
                         propagation_start=R_over_L*REF_LENGTH*3.28084,
                         altitude_stop=0.,
                         output_format=0,
                         input_xdim=2,
                         propagation_points=40000,
                         padding_points=8000)
+
+        if weather != 'standard':
+            # wind input (altitude ft, wind X, wind Y)
+            wind = []
+            wind = weather['wind_x']  # data[key]['wind_y']]
+            for i in range(len(wind)):
+                wind[i].append(weather['wind_y'][i][1])
+
+            self._sboom.set(input_temp=weather['temperature'],
+                            input_wind=wind,
+                            input_humidity=weather['humidity'])
 
     def run(self, optimization_var):
         # unpack optimization variables and assign to appropriate locations
@@ -81,7 +95,8 @@ class AxieBump:
                                                                 self.MESH_COARSEN_TOL, 5.)
 
         # pass in the new R(x) into panair axie surface function
-        self._networks = panairwrapper.mesh_tools.axisymmetric_surf(x_final, r_final, self.N_TANGENTIAL)
+        self._networks = panairwrapper.mesh_tools.axisymmetric_surf(
+            x_final, r_final, self.N_TANGENTIAL)
 
         # update Panair settings and run
         self._panair.clear_networks()
@@ -100,7 +115,6 @@ class AxieBump:
         # plt.plot(nearfield_sig[:, 0], nearfield_sig[:, 1])
         # plt.show()
         self.nearfield_sig = nf_sig
-
         # update sBOOM settings and run
         self._sboom.set(signature=nf_sig)
         sboom_results = self._sboom.run()
@@ -145,12 +159,14 @@ class DeltaWing:
         # generate parameter mesh
         self._N_psi = 20
         self._N_eta = 40
-        upper_psi, upper_eta = meshtools.meshparameterspace((self._N_psi, self._N_eta), flip=True, cos_spacing=True)
-        lower_psi, lower_eta = meshtools.meshparameterspace((self._N_psi, self._N_eta), cos_spacing=True)
+        upper_psi, upper_eta = meshtools.meshparameterspace(
+            (self._N_psi, self._N_eta), flip=True, cos_spacing=True)
+        lower_psi, lower_eta = meshtools.meshparameterspace(
+            (self._N_psi, self._N_eta), cos_spacing=True)
         self._mesh = {'upper': np.concatenate([upper_psi.reshape(1, np.size(upper_psi)),
-                                              upper_eta.reshape(1, np.size(upper_eta))]).T,
-                     'lower': np.concatenate([lower_psi.reshape(1, np.size(lower_psi)),
-                                              lower_eta.reshape(1, np.size(lower_eta))]).T}
+                                               upper_eta.reshape(1, np.size(upper_eta))]).T,
+                      'lower': np.concatenate([lower_psi.reshape(1, np.size(lower_psi)),
+                                               lower_eta.reshape(1, np.size(lower_eta))]).T}
 
         # initialize Panair
         self.gamma = 1.4
@@ -366,8 +382,10 @@ class WingBody:
         # rear_section_fuse[:, 1] = np.linspace(rear_point_fuse[1], 1., N_tail)
         rear_section_fuse[:, 0] = np.flipud(meshtools.cosine_spacing(psi_rearpoint, 1., N_tail))
 
-        int_upperfuse_p = np.concatenate((rear_section_fuse[:-1], np.array([psi_fu_intersect, eta_fu_intersect]).T, front_section_fuse[1:]))
-        int_lowerfuse_p = np.concatenate((rear_section_fuse[:-1], np.array([psi_fl_intersect, eta_fl_intersect]).T, front_section_fuse[1:]))
+        int_upperfuse_p = np.concatenate(
+            (rear_section_fuse[:-1], np.array([psi_fu_intersect, eta_fu_intersect]).T, front_section_fuse[1:]))
+        int_lowerfuse_p = np.concatenate(
+            (rear_section_fuse[:-1], np.array([psi_fl_intersect, eta_fl_intersect]).T, front_section_fuse[1:]))
 
         psi_fu, eta_fu = meshtools.meshparameterspace((N_chord+N_nose+N_tail-2, N_circ), flip=True,
                                                       eta_limits=(None, np.flipud(int_upperfuse_p)),
@@ -398,8 +416,8 @@ class WingBody:
         fuselage_wake_boundary = fuselage(rear_section_fuse[:, 0], rear_section_fuse[:, 1])
 
         fuselage_wake_boundary = np.flipud(np.array([fuselage_wake_boundary[0],
-                                           fuselage_wake_boundary[1],
-                                           fuselage_wake_boundary[2]]).T)
+                                                     fuselage_wake_boundary[1],
+                                                     fuselage_wake_boundary[2]]).T)
 
         inner_endpoint = np.copy(fuselage_wake_boundary[-1])
         n_wake_streamwise = len(fuselage_wake_boundary)
