@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 class AxieBump:
     def __init__(self, case_dir='./', panair_exec='panair',
                  sboom_exec='sboom_linux', weather='standard',
-                 altitude=51706.037):
+                 altitude=45000):
         CASE_DIR = case_dir
         PANAIR_EXEC = panair_exec
         SBOOM_EXEC = sboom_exec
@@ -33,6 +33,7 @@ class AxieBump:
         # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
         # import AXIE geometry from file
         data_dir = os.path.join(os.path.dirname(__file__), "..", "misc")
+
         geometry = np.genfromtxt(os.path.join(data_dir, "axie-geom-v1-mm.dat"))
         self._x_geom = geometry[:, 0]
         self._r_geom = geometry[:, 1]
