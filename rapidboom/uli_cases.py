@@ -43,7 +43,7 @@ class AxieBump:
         self._panair = panairwrapper.PanairWrapper('wingbody', CASE_DIR,
                                                    exe=PANAIR_EXEC)
         self._panair.set_aero_state(self.MACH, self.aoa)
-        self._panair.set_sensor(self.MACH, self.aoa, R_over_L, REF_LENGTH, n_lengths=1)
+        self._panair.set_sensor(self.MACH, self.aoa, R_over_L, REF_LENGTH)
         self._panair.set_symmetry(1, 1)
         # self._panair.add_network('axie_surface', None)
         # panair.add_sensor(r_over_l=3)
