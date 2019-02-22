@@ -72,22 +72,27 @@ class AxieBump:
                             input_wind=wind,
                             input_humidity=weather['humidity'])
 
-    def run(self, optimization_var):
-        # unpack optimization variables and assign to appropriate locations
-        bump_height, bump_loc, bump_width = optimization_var
+    def run(self, optimization_vars):
 
-        # evaluate bump at x coordinates and add to radius values
-        bump = pg.GaussianBump(bump_height, bump_loc, bump_width)
         f_constraint = pg.constrain_ends(self._x_geom)
-        # plt.plot(x_geom, f_constraint)
-        # plt.gca().set_aspect('equal', 'datalim')
-        # plt.show()
-        r_bump = bump(self._x_geom)*f_constraint
-        r_total = self._r_geom+r_bump
+        r_total = self._r_geom
+
+        # generates bump for each list of variables provided
+        for var_list in optimization_vars:
+            # unpack optimization variables and assign to appropriate locations
+            bump_height, bump_loc, bump_width = var_list
+
+            # evaluate bump at x coordinates and add to radius values
+            bump = pg.GaussianBump(bump_height, bump_loc, bump_width)
+            #bump = pg.WedgeBump(bump_height, bump_loc, bump_width)
+            # plt.plot(x_geom, f_constraint)
+            # plt.gca().set_aspect('equal', 'datalim')
+            # plt.show()
+            r_total = r_total + bump(self._x_geom)*f_constraint
 
         # plot geometry
-        # plt.plot(x_geom, r_geom)
-        # plt.plot(x_geom, r_total)
+        # plt.plot(self._x_geom, self._r_geom)
+        # plt.plot(self._x_geom, r_total)
         # plt.gca().set_aspect('equal', 'datalim')
         # plt.show()
 
