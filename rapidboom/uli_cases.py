@@ -78,24 +78,17 @@ class AxieBump:
         r_total = self._r_geom
 
         # generates bump for each list of variables provided
-        for var_list in optimization_vars:
-            # unpack optimization variables and assign to appropriate locations
-            bump_height, bump_loc, bump_width = var_list
-
-            # evaluate bump at x coordinates and add to radius values
+        try:
+            for var_list in optimization_vars:
+                # unpack optimization variables and assign to appropriate locations
+                bump_height, bump_loc, bump_width = var_list
+                # evaluate bump at x coordinates and add to radius values
+                bump = pg.GaussianBump(bump_height, bump_loc, bump_width)
+                r_total = r_total + bump(self._x_geom)*f_constraint
+        except(TypeError):
+            bump_height, bump_loc, bump_width = optimization_vars
             bump = pg.GaussianBump(bump_height, bump_loc, bump_width)
-            #bump = pg.WedgeBump(bump_height, bump_loc, bump_width)
-            # plt.plot(x_geom, f_constraint)
-            # plt.gca().set_aspect('equal', 'datalim')
-            # plt.show()
             r_total = r_total + bump(self._x_geom)*f_constraint
-
-        # plot geometry
-        # plt.plot(self._x_geom, self._r_geom)
-        # plt.plot(self._x_geom, r_total)
-        # plt.gca().set_aspect('equal', 'datalim')
-        # plt.show()
-
         # coarsen grid based on curvature
         x_final, r_final = panairwrapper.mesh_tools.coarsen_axi(self._x_geom, r_total,
                                                                 self.MESH_COARSEN_TOL, 5.)
@@ -118,15 +111,13 @@ class AxieBump:
         distance_along_sensor = offbody_data[:, 2]
         dp_over_p = 0.5*self.gamma*self.MACH**2*offbody_data[:, -2]
         nf_sig = np.array([distance_along_sensor, dp_over_p]).T
-        # plt.plot(nearfield_sig[:, 0], nearfield_sig[:, 1])
-        # plt.show()
+
         self.nearfield_sig = nf_sig
         # update sBOOM settings and run
         self._sboom.set(signature=nf_sig)
         sboom_results = self._sboom.run()
         g_sig = sboom_results["signal_0"]["ground_sig"]
-        # plt.plot(g_sig[:, 0], g_sig[:, 1])
-        # plt.show()
+
         self.ground_sig = g_sig
 
         # grab the loudness level
