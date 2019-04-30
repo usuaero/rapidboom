@@ -51,9 +51,12 @@ http://www.software.nasa.gov
 from collections import OrderedDict
 import numpy as np
 import os
+import sys
+import ctypes
 import subprocess
 import shutil
 import time
+
 
 class SboomWrapper:
     """The primary access point for specifying and running a case.
@@ -71,6 +74,7 @@ class SboomWrapper:
     --------
 
     """
+
     def __init__(self, directory, exe="sboom_linux"):
         # self._title = title
         self._directory = directory+"/sBOOM/"
@@ -209,9 +213,9 @@ class SboomWrapper:
                 else:
                     raise RuntimeError("sboom executable not found")
                 no_success = False
-            except: 
+            except:
                 no_success = True
-                
+
     def _write_inputfile(self):
         sig_filename = self._directory+self._parameters["signature_filename"]
         input_filename = self._directory+"presb.input"
@@ -250,9 +254,9 @@ class SboomWrapper:
             if name == "signature":
                 pass
             else:
-                if name in ["input_temp", "input_wind","input_humidity"] and option != 0:
+                if name in ["input_temp", "input_wind", "input_humidity"] and option != 0:
                     f.write('{0:<10}'.format(1)+"   "+name+"\n")
-                    if name =="input_wind":
+                    if name == "input_wind":
                         # For X wind
                         f.write('{}'.format(len(option))+"\n")
                         for i in range(len(option)):
@@ -260,12 +264,12 @@ class SboomWrapper:
                         # For Y wind
                         f.write('{}'.format(len(option))+"\n")
                         for i in range(len(option)):
-                            f.write('{0:<8}{1}'.format(option[i][0], option[i][2])+"\n")                              
+                            f.write('{0:<8}{1}'.format(option[i][0], option[i][2])+"\n")
                     else:
                         f.write('{}'.format(len(option))+"\n")
                         for i in range(len(option)):
                             f.write('{0:<8}{1}'.format(option[i][0], option[i][1])+"\n")
-                else:    
+                else:
                     f.write('{0:<10}'.format(option)+"   "+name+"\n")
             # elif name == "signature_filename":
             #     f.write(self._format_opt(option)+"   "+name+"\n")
@@ -282,9 +286,40 @@ class SboomWrapper:
             #         f.write(self._format_opt(val)+"   "+name+"\n")
 
     def _call_executable(self):
-        
+        if sys.platform.startswith("win"):
+            SEM_NOGPFAULTERRORBOX = 0x0002
+            ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX)
+            CREATE_NO_WINDOW = 0x08000000
+            subprocess_flags = CREATE_NO_WINDOW
+        else:
+            subprocess_flags = 0
         while not os.path.isfile(self._directory+"loud.dat"):
-            p = subprocess.call(os.path.join(self._sboom_loc, self._sboom_exec), cwd=self._directory)
+            # p = subprocess.Popen(['xfoil.exe'],
+            #               stdin=sp.PIPE,
+            #               stdout=sout,
+            #               stderr=None,
+            #               startupinfo=startupinfo,
+            #               encoding='utf8')
+
+            p = subprocess.Popen(os.path.join(self._sboom_loc,
+                                              self._sboom_exec),
+                                 stdin=subprocess.PIPE,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE,
+                                 creationflags=subprocess_flags,
+                                 cwd=self._directory)
+            current_time = 0
+            start = time.time()
+            total_time = 5
+            dt = 0.1
+
+            while current_time < total_time and p.poll() is None:
+                current_time = time.time() - start
+                time.sleep(dt)
+
+            if current_time >= total_time:
+                os.system("taskkill /im WerFault.exe")
+            p.kill()
 
     def _parse_outputfile(self):
         num_signals = self._parameters["num_azimuthal"]
