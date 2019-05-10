@@ -294,27 +294,27 @@ class SboomWrapper:
         else:
             subprocess_flags = 0
         while not os.path.isfile(self._directory+"loud.dat"):
-            # p = subprocess.call(os.path.join(
-            #     self._sboom_loc, self._sboom_exec), cwd=self._directory)
-            p = subprocess.Popen(os.path.join(self._directory,
-                                              self._sboom_exec),
-                                 stdin=subprocess.PIPE,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 creationflags=subprocess_flags,
-                                 cwd=self._directory)
-
-            current_time = 0
-            start = time.time()
-            total_time = 10
-            dt = .1
-            while current_time < total_time and p.poll() is None:
-                current_time = time.time() - start
-                time.sleep(dt)
-
-            if current_time >= total_time:
-                os.system("taskkill /im WerFault.exe")
-            p.kill()
+            p = subprocess.call(os.path.join(
+                self._sboom_loc, self._sboom_exec), cwd=self._directory)
+            # p = subprocess.Popen(os.path.join(self._directory,
+            #                                   self._sboom_exec),
+            #                      stdin=subprocess.PIPE,
+            #                      stdout=subprocess.PIPE,
+            #                      stderr=subprocess.PIPE,
+            #                      creationflags=subprocess_flags,
+            #                      cwd=self._directory)
+            #
+            # current_time = 0
+            # start = time.time()
+            # total_time = 10
+            # dt = .1
+            # while current_time < total_time and p.poll() is None:
+            #     current_time = time.time() - start
+            #     time.sleep(dt)
+            #
+            # if current_time >= total_time:
+            #     os.system("taskkill /im WerFault.exe")
+            # p.kill()
 
     def _parse_outputfile(self):
         num_signals = self._parameters["num_azimuthal"]

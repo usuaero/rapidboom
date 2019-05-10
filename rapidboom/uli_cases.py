@@ -4,13 +4,15 @@ import pyldb
 import rapidboom.parametricgeometry as pg
 import panairwrapper
 import panairwrapper.mesh_tools as meshtools
-from aeropy.CST_3D.module import *
-import aeropy.CST_3D as cst
-from aeropy.filehandling.vtk import generate_surface
 import os
-
 import numpy as np
 import matplotlib.pyplot as plt
+try:
+    from aeropy.CST_3D.module import *
+    import aeropy.CST_3D as cst
+    from aeropy.filehandling.vtk import generate_surface
+except(ModuleNotFoundError):
+    pass
 
 
 class AxieBump:
