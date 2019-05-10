@@ -294,25 +294,20 @@ class SboomWrapper:
         else:
             subprocess_flags = 0
         while not os.path.isfile(self._directory+"loud.dat"):
-            # p = subprocess.Popen(['xfoil.exe'],
-            #               stdin=sp.PIPE,
-            #               stdout=sout,
-            #               stderr=None,
-            #               startupinfo=startupinfo,
-            #               encoding='utf8')
-
-            p = subprocess.Popen(os.path.join(self._sboom_loc,
+            # p = subprocess.call(os.path.join(
+            #     self._sboom_loc, self._sboom_exec), cwd=self._directory)
+            p = subprocess.Popen(os.path.join(self._directory,
                                               self._sboom_exec),
                                  stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  creationflags=subprocess_flags,
                                  cwd=self._directory)
+
             current_time = 0
             start = time.time()
-            total_time = 5
-            dt = 0.1
-
+            total_time = 10
+            dt = .1
             while current_time < total_time and p.poll() is None:
                 current_time = time.time() - start
                 time.sleep(dt)

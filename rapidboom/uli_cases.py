@@ -111,7 +111,10 @@ class AxieBump:
         distance_along_sensor = offbody_data[:, 2]
         dp_over_p = 0.5*self.gamma*self.MACH**2*offbody_data[:, -2]
         nf_sig = np.array([distance_along_sensor, dp_over_p]).T
-
+        import pickle
+        f = open('test.p', 'wb')
+        pickle.dump(nf_sig, f)
+        f.close()
         self.nearfield_sig = nf_sig
         # update sBOOM settings and run
         self._sboom.set(signature=nf_sig)
