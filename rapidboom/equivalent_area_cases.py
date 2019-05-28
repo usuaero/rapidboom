@@ -10,11 +10,13 @@ import matplotlib.pyplot as plt
 
 class EquivArea:
     def __init__(self, case_dir='./', sboom_exec='sboom_linux',
-                 weather='standard', altitude=45000):
+                 weather='standard', altitude=50000):
         self.CASE_DIR = case_dir
         SBOOM_EXEC = sboom_exec
         REF_LENGTH = 32.92
         self.MACH = 1.6
+        # self.MACH = 1.583
+        # self.MACH = 1.671
         self.aoa = 0.
         self.gamma = 1.4
         self.altitude = altitude
@@ -23,8 +25,11 @@ class EquivArea:
         # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
         # import equivalent area from file
         data_dir = os.path.join(os.path.dirname(__file__), "..", "misc")
+
         equiv_area_dist = np.genfromtxt(os.path.join(data_dir,
                                                      "sBoom__DPatR_3_clean_phi00.00.eqarea"))
+                                                     # "mach1p583_aoa-0p273.eqarea"))
+                                                     # "mach1p671_aoa0p392.eqarea"))
 
         self.position = equiv_area_dist[:, 0]
         self.area = equiv_area_dist[:, 1]
@@ -78,19 +83,25 @@ class EquivArea:
             area_temp = area_temp + delta_A*f_constraint
 
         self.new_equiv_area = np.array([self.position, area_temp]).T
+        # np.savetxt('25D_equiv_area_dist_V1.txt', self.new_equiv_area, fmt='%.12f')
 
         # area units in ft^2 for sBoom input
         self.new_equiv_area[:, 1] = self.new_equiv_area[:, 1] * 10.7639
-        # plot new equivalent area
-        # plt.plot(self.position, self.area* 10.7639)
-        # plt.plot(self.new_equiv_area[:,0], self.new_equiv_area[:,1])
+        # # plot new equivalent area
+        # plt.plot(self.position, self.area)
+        # plt.plot(self.new_equiv_area[:,0], (self.new_equiv_area[:,1])/(10.7639))
+        # plt.title('Gaussian change in $A_E$$_q$, Amplitude: 0.03 $m^2$, Standard deviation: 0.5 m, Location: 30.0 m', fontsize = 16)
+        # plt.xlabel("Axial position(m)", fontsize = 16)
+        # plt.ylabel('$A_E$$_q$ ($m^2$)', fontsize = 16)
+        # plt.legend(['Baseline $A_E$$_q$', 'Modified $A_E$$_q$'], fontsize = 16)
+        # plt.xlim((0, 50))
         # plt.show()
 
         # update sBOOM settings and run
         self._sboom.set(signature=self.new_equiv_area, input_format=2)
         sboom_results = self._sboom.run()
         g_sig = sboom_results["signal_0"]["ground_sig"]
-        # self.ground_sig = g_sig
+        # # self.ground_sig = g_sig
         # plt.plot(g_sig[:, 0], g_sig[:, 1])
         # plt.show()
 
