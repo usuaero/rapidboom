@@ -52,6 +52,7 @@ def cosine_spacing(start, stop, num_points, offset=0):
 
 class Kulfan_Axisymmetric():
     """   """
+
     def __init__(self, D1, D2, shape_function):
         self._cross_section_cst = Kulfan_1D(N1=0.5, N2=0.5, shape_function=0.5)
         self._distribution_cst = Kulfan_1D(D1, D2, shape_function)
@@ -84,6 +85,7 @@ class Kulfan_1D():
     """1D parametrization that can be used for airfoils or axisymmetric bodies.
 
     """
+
     def __init__(self, N1, N2, shape_function=None):
         self._N1 = N1
         self._N2 = N2
@@ -108,6 +110,7 @@ class Kulfan_1D():
 
 class BernstienPolynomial():
     """ """
+
     def __init__(self, n_coeff, coefficients=None):
         self._n_coeff = n_coeff
         if coefficients is not None:
@@ -164,6 +167,7 @@ def plot_cart_surf(grid):
 
 class GaussianBump:
     """  """
+
     def __init__(self, height=1., location=0., standard_deviation=1.):
         self._height = height
         self._loc = location
@@ -180,6 +184,36 @@ class GaussianBump:
         c = self._std
 
         return a*np.exp(-0.5*np.power((parameter-b)/c, 2))
+
+
+class HermiteSpline:
+    """  """
+
+    def __init__(self, p0=0., p1=0, m0=1., m1=-.2, a=0.5, b=1.0):
+        self._p0 = p0
+        self._p1 = p1
+        self._m0 = m0
+        self._m1 = m1
+        self._a = a
+        self._b = b
+
+    def __call__(self, parameter):
+        p0 = self._p0
+        p1 = self._p1
+        m0 = self._m0
+        m1 = self._m1
+
+        dx = self._b - self._a
+
+        output = np.zeros(parameter.shape)
+        indexes = np.where((parameter >= self._a) & (parameter <= self._b))
+        t = np.linspace(0, 1, len(indexes[0]))
+        h00 = 2*t**3 - 3*t**2 + 1
+        h10 = t**3 - 2*t**2 + t
+        h01 = -2*t**3 + 3*t**2
+        h11 = t**3 - t**2
+        output[indexes] = h00*p0 + h10*dx*m0 + h01*p1 + h11*dx*m1
+        return output
 
 
 def constrain_ends(x_points):

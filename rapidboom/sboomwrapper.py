@@ -216,14 +216,17 @@ class SboomWrapper:
             except:
                 no_success = True
 
-    def _write_inputfile(self):
+    def _write_inputfile(self, input_source = None):
         sig_filename = self._directory+self._parameters["signature_filename"]
         input_filename = self._directory+"presb.input"
 
         with open(sig_filename, 'w') as f:
             self._write_signature_file(f)
-        with open(input_filename, 'w') as f:
-            self._write_parameter_file(f)
+        if input_source is not None:
+            shutil.copyfile(input_source, self._directory)
+        else:
+            with open(input_filename, 'w') as f:
+                self._write_parameter_file(f)
 
     def _write_signature_file(self, f):
         num_angles = self._parameters["num_azimuthal"]
