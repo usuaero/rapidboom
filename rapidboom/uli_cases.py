@@ -97,9 +97,9 @@ class AxieBump:
             try:
                 for var_list in optimization_vars:
                     # unpack optimization variables and assign to appropriate locations
-                    m0, m1, a, b = var_list
+                    x, y, m, w0, w1 = var_list
                     # evaluate bump at x coordinates and add to radius values
-                    bump = pg.HermiteSpline(m0=m0, m1=m1, a=a, b=b)
+                    bump = pg.SplineBump(x, y, m, w0, w1)
                     r_total = r_total + bump(self._x_geom)*f_constraint
             except(TypeError):
                 m0, m1, a, b = optimization_vars

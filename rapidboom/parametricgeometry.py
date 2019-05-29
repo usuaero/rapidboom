@@ -216,6 +216,27 @@ class HermiteSpline:
         return output
 
 
+class SplineBump:
+    """  """
+
+    def __init__(self, x=0., y=1, m=0, w1=0.5, w2=0.5):
+        self._p0 = [0, y]
+        self._p1 = [y, 0]
+        self._m0 = [0, m]
+        self._m1 = [m, 0]
+        self._a = [x-w1, x]
+        self._b = [x, x+w2]
+
+    def __call__(self, parameter):
+        output = np.zeros(parameter.shape)
+        for i in range(2):
+            spline = HermiteSpline(self._p0[i], self._p1[i],
+                                   self._m0[i], self._m1[i],
+                                   self._a[i], self._b[i])
+            output += spline(parameter)
+        return output
+
+
 def constrain_ends(x_points):
     """Used to smoothly constrain the ends of a parameterization to zero.
     """
