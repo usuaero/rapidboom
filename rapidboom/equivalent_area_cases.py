@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 class EquivArea:
     def __init__(self, case_dir='./', sboom_exec='sboom_linux',
-                 weather='standard', altitude=50000):
+                 weather='standard', altitude=50000, deformation='gaussian'):
         self.CASE_DIR = case_dir
         SBOOM_EXEC = sboom_exec
         REF_LENGTH = 32.92
@@ -20,6 +20,7 @@ class EquivArea:
         self.aoa = 0.
         self.gamma = 1.4
         self.altitude = altitude
+        self.deformation = deformation
         R_over_L = 5
 
         # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
@@ -58,6 +59,25 @@ class EquivArea:
                             input_humidity=weather['humidity'])
 
     def run(self, optimization_vars):
+        def _runGaussian(area_temp, inputs):
+            # unpack optimization variables
+            gauss_amp, gauss_loc, gauss_std = inputs
+            # evaluate change in Aeq at each location
+            delta = pg.GaussianBump(gauss_amp, gauss_loc, gauss_std)
+            delta_A = delta(self.position)
+            # prevents nan issues when all variables are 0
+            delta_A[np.isnan(delta_A)] = 0
+            return delta_A*f_constraint
+
+        def _runCubic(area_temp, inputs):
+            # unpack optimization variables
+            x, y, m, w0, w1 = inputs
+            # evaluate change in Aeq at each location
+            delta = pg.SplineBump(x, y, m, w0, w1)
+            delta_A = delta(self.position)
+            # prevents nan issues when all variables are 0
+            delta_A[np.isnan(delta_A)] = 0
+            return delta_A*f_constraint
 
         area_temp = self.area
         f_constraint = pg.constrain_ends(self.position)
@@ -65,22 +85,16 @@ class EquivArea:
     # to implement change in Aeq
         try:
             for var_list in optimization_vars:
-                # unpack optimization variables
-                gauss_amp, gauss_loc, gauss_std = var_list
-                # evaluate change in Aeq at each location
-                delta = pg.GaussianBump(gauss_amp, gauss_loc, gauss_std)
-                delta_A = delta(self.position)
-                # prevents nan issues when all variables are 0
-                delta_A[np.isnan(delta_A)] = 0
-                area_temp = area_temp + delta_A*f_constraint
+                if self.deformation == 'gaussian':
+                    area_temp = area_temp + _runGaussian(area_temp, var_list)
+                elif self.deformation == 'cubic':
+                    area_temp = area_temp + _runCubic(area_temp, var_list)
         # if one bump is provided
         except(TypeError):
-            gauss_amp, gauss_loc, gauss_std = optimization_vars
-            delta = pg.GaussianBump(gauss_amp, gauss_loc, gauss_std)
-            delta_A = delta(self.position)
-            # prevents nan issues when all variables are 0
-            delta_A[np.isnan(delta_A)] = 0
-            area_temp = area_temp + delta_A*f_constraint
+            if self.deformation == 'gaussian':
+                area_temp = area_temp + _runGaussian(area_temp, optimization_vars)
+            elif self.deformation == 'cubic':
+                area_temp = area_temp + _runCubic(area_temp, optimization_vars)
 
         self.new_equiv_area = np.array([self.position, area_temp]).T
         # np.savetxt('25D_equiv_area_dist_V1.txt', self.new_equiv_area, fmt='%.12f')
