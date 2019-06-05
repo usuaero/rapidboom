@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 
 class EquivArea:
     def __init__(self, case_dir='./', sboom_exec='sboom_linux',
-                 weather='standard', altitude=50000, deformation='gaussian'):
+                 weather='standard', altitude=50000, deformation='gaussian',
+                 atmosphere_input=None):
         self.CASE_DIR = case_dir
         SBOOM_EXEC = sboom_exec
         REF_LENGTH = 32.92
@@ -21,6 +22,7 @@ class EquivArea:
         self.gamma = 1.4
         self.altitude = altitude
         self.deformation = deformation
+        self.atmosphere_input = atmosphere_input
         R_over_L = 5
 
         # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
@@ -29,8 +31,8 @@ class EquivArea:
 
         equiv_area_dist = np.genfromtxt(os.path.join(data_dir,
                                                      "sBoom__DPatR_3_clean_phi00.00.eqarea"))
-                                                     # "mach1p583_aoa-0p273.eqarea"))
-                                                     # "mach1p671_aoa0p392.eqarea"))
+        # "mach1p583_aoa-0p273.eqarea"))
+        # "mach1p671_aoa0p392.eqarea"))
 
         self.position = equiv_area_dist[:, 0]
         self.area = equiv_area_dist[:, 1]
@@ -113,7 +115,7 @@ class EquivArea:
 
         # update sBOOM settings and run
         self._sboom.set(signature=self.new_equiv_area, input_format=2)
-        sboom_results = self._sboom.run()
+        sboom_results = self._sboom.run(atmosphere_input=self.atmosphere_input)
         g_sig = sboom_results["signal_0"]["ground_sig"]
         # # self.ground_sig = g_sig
         # plt.plot(g_sig[:, 0], g_sig[:, 1])
