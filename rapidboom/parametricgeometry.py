@@ -237,6 +237,24 @@ class SplineBump:
         return output
 
 
+class CustomBump:
+    """  """
+
+    def __init__(self, function, location=12.5, width=2):
+        self.location = location
+        self.width = width
+        self.function = function
+        self._a = location - width/2.
+        self._b = location + width/2.
+
+    def __call__(self, parameter):
+        output = np.zeros(parameter.shape)
+        indexes = np.where((parameter >= self._a) & (parameter <= self._b))
+        x = parameter[indexes]
+        output[indexes] += self.function(x)
+        return output
+
+
 def constrain_ends(x_points):
     """Used to smoothly constrain the ends of a parameterization to zero.
     """
