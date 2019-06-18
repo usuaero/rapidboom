@@ -108,6 +108,12 @@ class AxieBump:
                 r_total = r_total + bump(self._x_geom)*f_constraint
                 plt.plot(self._x_geom, r_total)
                 plt.show()
+        elif self.deformation == 'custom':
+            function, location, width = optimization_vars
+            bump = pg.CustomBump(function, location, width)
+            r_total = r_total + bump(self._x_geom)*f_constraint
+            # plt.plot(self._x_geom, r_total)
+            # plt.show()
         # coarsen grid based on curvature
         x_final, r_final = panairwrapper.mesh_tools.coarsen_axi(self._x_geom, r_total,
                                                                 self.MESH_COARSEN_TOL, 5.)
