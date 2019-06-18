@@ -7,22 +7,49 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+""" A number of different equivalent area distributions from different
+flight conditions are available for use. A naming convention has been
+established for varying Mach number, AoA, and azimuth angles. The list
+included here provides the file names for the current Eq. Area dist 
+included with the github repository.
+
+Baseline:
+'mach1p600_aoa0p000_phi00p00.eqarea'
+
+Varying Mach:
+'mach1p550_aoa0p000_phi00p00.eqarea'
+'mach1p650_aoaop000_phi00p00.eqarea'
+
+Varying AoA:
+'mach1p600_aoa0p200_phi00p00.eqarea'
+'mach1p600_aoa-0p400_phi00p00.eqarea'
+
+Varying AoA and Mach:
+'mach1p583_aoa-0p273_phi00p00.eqarea'
+'mach1p671_aoa0p392_phi00p00.eqarea'
+
+Varying PHI:
+'mach1p600_aoa0p000_phi02p00.eqarea'
+
+The EquivArea class defaults to the baseline flight condition Eq. Area
+"""
 
 class EquivArea:
     def __init__(self, case_dir='./', sboom_exec='sboom_linux',
                  weather='standard', altitude=50000, deformation='gaussian',
-                 atmosphere_input=None):
+                 area_filename = 'mach1p600_aoa0p000_phi00p00.eqarea',
+                 mach=1.6, phi=0, atmosphere_input=None):
+
         self.CASE_DIR = case_dir
         SBOOM_EXEC = sboom_exec
         REF_LENGTH = 32.92
-        self.MACH = 1.6
-        # self.MACH = 1.583
-        # self.MACH = 1.671
-        self.aoa = 0.
+        self.MACH = mach
+        self.PHI = phi
         self.gamma = 1.4
         self.altitude = altitude
         self.deformation = deformation
         self.atmosphere_input = atmosphere_input
+        self.eqa_filename = area_filename
         R_over_L = 5
 
         # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
@@ -30,9 +57,7 @@ class EquivArea:
         data_dir = os.path.join(os.path.dirname(__file__), "..", "misc")
 
         equiv_area_dist = np.genfromtxt(os.path.join(data_dir,
-                                                     "sBoom__DPatR_3_clean_phi00.00.eqarea"))
-        # "mach1p583_aoa-0p273.eqarea"))
-        # "mach1p671_aoa0p392.eqarea"))
+                                                     self.eqa_filename))
 
         self.position = equiv_area_dist[:, 0]
         self.area = equiv_area_dist[:, 1]
@@ -46,6 +71,7 @@ class EquivArea:
                         altitude_stop=0.,
                         output_format=0,
                         input_xdim=2,
+                        azimuthal_angles = self.PHI,
                         propagation_points=40000,
                         padding_points=8000)
 
