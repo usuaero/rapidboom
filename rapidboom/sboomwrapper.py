@@ -81,10 +81,7 @@ class SboomWrapper:
         self._parameters = self._init_parameters()
         self._results = {}
         self._sboom_exec = exe
-        if os.name == 'nt':
-            self._sboom_loc = os.path.dirname(__file__)
-        else:
-            self._sboom_loc = os.path.join(os.path.dirname(__file__), "..")
+        self._sboom_loc = os.path.join(os.path.dirname(__file__), "..")
 
     def _init_parameters(self):
         parameters = OrderedDict([["signature", None],
@@ -170,7 +167,7 @@ class SboomWrapper:
             else:
                 raise RuntimeError(name+" keyword argument not recognized")
 
-    def run(self, overwrite=True):
+    def run(self, overwrite=True, atmosphere_input=None):
         """Generates Panair inputfile and runs case.
 
         Returns
@@ -187,7 +184,7 @@ class SboomWrapper:
         if overwrite:
             time.sleep(0.2)
             self._create_dir()
-            self._write_inputfile()
+            self._write_inputfile(input_source=atmosphere_input)
             self._call_executable()
 
         self._parse_outputfile()
@@ -210,10 +207,7 @@ class SboomWrapper:
                 os.makedirs(self._directory)
 
                 # copy in panair.exec
-                if os.name == 'nt':
-                    executable = os.path.join(os.path.dirname(__file__), self._sboom_exec)
-                else:
-                    executable = os.path.join(os.path.dirname(__file__), '..', self._sboom_exec)
+                executable = os.path.join(os.path.dirname(__file__), '..', self._sboom_exec)
                 if os.path.isfile(executable):
                     shutil.copy2(executable, self._directory)
                 else:
@@ -222,14 +216,17 @@ class SboomWrapper:
             except:
                 no_success = True
 
-    def _write_inputfile(self):
+    def _write_inputfile(self, input_source=None):
         sig_filename = self._directory+self._parameters["signature_filename"]
         input_filename = self._directory+"presb.input"
 
         with open(sig_filename, 'w') as f:
             self._write_signature_file(f)
-        with open(input_filename, 'w') as f:
-            self._write_parameter_file(f)
+        if input_source is not None:
+            shutil.copy(input_source, self._directory)
+        else:
+            with open(input_filename, 'w') as f:
+                self._write_parameter_file(f)
 
     def _write_signature_file(self, f):
         num_angles = self._parameters["num_azimuthal"]

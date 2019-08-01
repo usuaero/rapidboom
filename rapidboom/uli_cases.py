@@ -18,7 +18,7 @@ except(ModuleNotFoundError):
 class AxieBump:
     def __init__(self, case_dir='./', panair_exec='panair',
                  sboom_exec='sboom_linux', weather='standard',
-                 altitude=45000):
+                 altitude=45000, deformation='bump'):
         CASE_DIR = case_dir
         PANAIR_EXEC = panair_exec
         SBOOM_EXEC = sboom_exec
@@ -27,6 +27,7 @@ class AxieBump:
         self.aoa = 0.
         self.gamma = 1.4
         self.altitude = altitude
+        self.deformation = deformation
         R_over_L = 5
 
         self.MESH_COARSEN_TOL = 0.000035
@@ -80,17 +81,39 @@ class AxieBump:
         r_total = self._r_geom
 
         # generates bump for each list of variables provided
-        try:
-            for var_list in optimization_vars:
-                # unpack optimization variables and assign to appropriate locations
-                bump_height, bump_loc, bump_width = var_list
-                # evaluate bump at x coordinates and add to radius values
+        if self.deformation == 'gaussian':
+            try:
+                for var_list in optimization_vars:
+                    # unpack optimization variables and assign to appropriate locations
+                    bump_height, bump_loc, bump_width = var_list
+                    # evaluate bump at x coordinates and add to radius values
+                    bump = pg.GaussianBump(bump_height, bump_loc, bump_width)
+                    r_total = r_total + bump(self._x_geom)*f_constraint
+            except(TypeError):
+                bump_height, bump_loc, bump_width = optimization_vars
                 bump = pg.GaussianBump(bump_height, bump_loc, bump_width)
                 r_total = r_total + bump(self._x_geom)*f_constraint
-        except(TypeError):
-            bump_height, bump_loc, bump_width = optimization_vars
-            bump = pg.GaussianBump(bump_height, bump_loc, bump_width)
+        elif self.deformation == 'cubic':
+            try:
+                for var_list in optimization_vars:
+                    # unpack optimization variables and assign to appropriate locations
+                    x, y, m, w0, w1 = var_list
+                    # evaluate bump at x coordinates and add to radius values
+                    bump = pg.SplineBump(x, y, m, w0, w1)
+                    r_total = r_total + bump(self._x_geom)*f_constraint
+            except(TypeError):
+                m0, m1, a, b = optimization_vars
+                # evaluate bump at x coordinates and add to radius values
+                bump = pg.HermiteSpline(m0=m0, m1=m1, a=a, b=b)
+                r_total = r_total + bump(self._x_geom)*f_constraint
+                plt.plot(self._x_geom, r_total)
+                plt.show()
+        elif self.deformation == 'custom':
+            function, location, width = optimization_vars
+            bump = pg.CustomBump(function, location, width)
             r_total = r_total + bump(self._x_geom)*f_constraint
+            # plt.plot(self._x_geom, r_total)
+            # plt.show()
         # coarsen grid based on curvature
         x_final, r_final = panairwrapper.mesh_tools.coarsen_axi(self._x_geom, r_total,
                                                                 self.MESH_COARSEN_TOL, 5.)
