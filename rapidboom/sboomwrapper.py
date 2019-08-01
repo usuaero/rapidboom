@@ -113,9 +113,12 @@ class SboomWrapper:
                                   ["climb_angle", 0.],
                                   ["output_format", 1],
                                   ["input_xdim", 0],
+                                  ["adjoint", 0],
+                                  ["objective", 4],
                                   ["acceleration", 0.],
                                   ["turn_rate", 0.],
-                                  ["pitch_rate", 0.]])
+                                  ["climb_rate", 0.],
+                                  ["3D_earth", 0.]])
 
         return parameters
 
@@ -153,9 +156,12 @@ class SboomWrapper:
         "climb_angle": 0.
         "output_format": 1
         "input_xdim": 0
+        "adjoint": 0
+        "objective": 4
         "acceleration": 0.
         "turn_rate": 0.
-        "pitch_rate": 0.
+        "climb_rate": 0.
+        "3D_earth": 0.
 
         """
         for name, value in inputs.items():
@@ -255,8 +261,8 @@ class SboomWrapper:
                 pass
             else:
                 if name in ["input_temp", "input_wind", "input_humidity"] and option != 0:
-                    f.write('{0:<10}'.format(1)+"   "+name+"\n")
                     if name == "input_wind":
+                        f.write('{0:<10}'.format(4)+"   "+name+"\n")
                         # For X wind
                         f.write('{}'.format(len(option))+"\n")
                         for i in range(len(option)):
@@ -266,6 +272,7 @@ class SboomWrapper:
                         for i in range(len(option)):
                             f.write('{0:<8}{1}'.format(option[i][0], option[i][2])+"\n")
                     else:
+                        f.write('{0:<10}'.format(1)+"   "+name+"\n")
                         f.write('{}'.format(len(option))+"\n")
                         for i in range(len(option)):
                             f.write('{0:<8}{1}'.format(option[i][0], option[i][1])+"\n")
