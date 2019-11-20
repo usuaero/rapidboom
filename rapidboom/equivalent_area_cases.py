@@ -93,15 +93,18 @@ class EquivArea:
 
         if weather != 'standard':
             # wind input (altitude ft, wind X, wind Y)
-            wind = []
-            wind = weather['wind_x']  # data[key]['wind_y']]
-            for i in range(len(wind)):
-                wind[i].append(weather['wind_y'][i][1])
+            if 'wind_x' in weather.keys():
+                wind = []
+                wind = weather['wind_x']  # data[key]['wind_y']]
+                for i in range(len(wind)):
+                    wind[i].append(weather['wind_y'][i][1])
 
-            self._sboom.set(input_temp=weather['temperature'],
-                            input_wind=wind,
-                            input_humidity=weather['humidity'])
-
+                self._sboom.set(input_temp=weather['temperature'],
+                                input_wind=wind,
+                                input_humidity=weather['humidity'])   
+            else:
+                self._sboom.set(input_temp=weather['temperature'],
+                                input_humidity=weather['humidity'])
     def run(self, optimization_vars):
         def _runGaussian(area_temp, inputs):
             # unpack optimization variables

@@ -30,7 +30,7 @@ class AxieBump:
         self.deformation = deformation
         R_over_L = 5
 
-        self.MESH_COARSEN_TOL = 0.000035
+        self.MESH_COARSEN_TOL = 0.00035
         self.N_TANGENTIAL = 20
 
         # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
@@ -64,7 +64,11 @@ class AxieBump:
                         propagation_points=40000,
                         padding_points=8000)
 
-        if weather != 'standard':
+        if weather == 'dry':
+            altitudes = list(np.linspace(0, self.altitude*0.3048, 31))
+            dry_humidity = list(np.array([altitudes, list(np.zeros(31))]).T)
+            self._sboom.set(input_humidity=dry_humidity)
+        elif weather != 'standard':
             # wind input (altitude ft, wind X, wind Y)
             wind = []
             wind = weather['wind_x']  # data[key]['wind_y']]
@@ -112,12 +116,18 @@ class AxieBump:
             function, location, width = optimization_vars
             bump = pg.CustomBump(function, location, width)
             r_total = r_total + bump(self._x_geom)*f_constraint
-            # plt.plot(self._x_geom, r_total)
+            plt.plot(self._x_geom, bump(self._x_geom)*f_constraint)
             # plt.show()
         # coarsen grid based on curvature
         x_final, r_final = panairwrapper.mesh_tools.coarsen_axi(self._x_geom, r_total,
-                                                                self.MESH_COARSEN_TOL, 5.)
-
+                                                               self.MESH_COARSEN_TOL, 5.)
+        # plt.figure()
+        # plt.plot(self._x_geom, r_total, label='total')
+        # plt.plot(x_final, r_final, label='final')
+        # plt.show()
+        # print(len(r_final), len(r_total))
+        # x_final = self._x_geom
+        # r_final = r_total
         # pass in the new R(x) into panair axie surface function
         self._networks = panairwrapper.mesh_tools.axisymmetric_surf(
             x_final, r_final, self.N_TANGENTIAL)
@@ -136,10 +146,7 @@ class AxieBump:
         distance_along_sensor = offbody_data[:, 2]
         dp_over_p = 0.5*self.gamma*self.MACH**2*offbody_data[:, -2]
         nf_sig = np.array([distance_along_sensor, dp_over_p]).T
-        import pickle
-        f = open('test.p', 'wb')
-        pickle.dump(nf_sig, f)
-        f.close()
+
         self.nearfield_sig = nf_sig
         # update sBOOM settings and run
         self._sboom.set(signature=nf_sig)
@@ -151,7 +158,7 @@ class AxieBump:
         # grab the loudness level
         # noise_level = sboom_results["signal_0"]["C_weighted"]
         noise_level = pyldb.perceivedloudness(g_sig[:, 0], g_sig[:, 1], pad_rear=4)
-
+        # noise_level = None
         return noise_level
 
     def generate_vtk(self):
