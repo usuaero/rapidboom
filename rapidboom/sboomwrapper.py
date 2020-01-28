@@ -263,16 +263,16 @@ class SboomWrapper:
                         # For X wind
                         f.write('{}'.format(len(option))+"\n")
                         for i in range(len(option)):
-                            f.write('{0:<8}{1}'.format(option[i][0], option[i][1])+"\n")
+                            f.write('{0:<8}{1}'.format(round(option[i][0],2), option[i][1])+"\n")
                         # For Y wind
                         f.write('{}'.format(len(option))+"\n")
                         for i in range(len(option)):
-                            f.write('{0:<8}{1}'.format(option[i][0], option[i][2])+"\n")
+                            f.write('{0:<8}{1}'.format(round(option[i][0],2), option[i][2])+"\n")
                     else:
                         f.write('{0:<10}'.format(1)+"   "+name+"\n")
                         f.write('{}'.format(len(option))+"\n")
                         for i in range(len(option)):
-                            f.write('{0:<8}{1}'.format(option[i][0], option[i][1])+"\n")
+                            f.write('{0:<8}{1}'.format(round(option[i][0],2), option[i][1])+"\n")
                 else:
                     f.write('{0:<10}'.format(option)+"   "+name+"\n")
             # elif name == "signature_filename":
