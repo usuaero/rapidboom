@@ -18,7 +18,7 @@ except(ModuleNotFoundError):
 class AxieBump:
     def __init__(self, case_dir='./', panair_exec='panair',
                  sboom_exec='sboom_linux', weather='standard',
-                 altitude=45000, deformation='bump'):
+                 altitude=45000, deformation='bump', elevation=0):
         CASE_DIR = case_dir
         PANAIR_EXEC = panair_exec
         SBOOM_EXEC = sboom_exec
@@ -28,6 +28,7 @@ class AxieBump:
         self.gamma = 1.4
         self.altitude = altitude
         self.deformation = deformation
+        self.elevation = elevation
         R_over_L = 5
 
         self.MESH_COARSEN_TOL = 0.00035
@@ -58,7 +59,7 @@ class AxieBump:
         self._sboom.set(mach_number=self.MACH,
                         altitude=self.altitude,
                         propagation_start=R_over_L*REF_LENGTH*3.28084,
-                        altitude_stop=0.,
+                        altitude_stop=self.elevation,
                         output_format=0,
                         input_xdim=2,
                         propagation_points=40000,

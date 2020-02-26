@@ -26,7 +26,7 @@ Notes
 A number of different equivalent area distributions from different
 flight conditions are available for use. A naming convention has been
 established for varying Mach number, AoA, and azimuth angles. The list
-included here provides the file names for the current Eq. Area dist 
+included here provides the file names for the current Eq. Area dist
 included with the github repository.
 
 Baseline:
@@ -54,7 +54,7 @@ class EquivArea:
     def __init__(self, case_dir='./', sboom_exec='sboom_linux',
                  weather='standard', altitude=50000, deformation='gaussian',
                  area_filename = 'mach1p600_aoa0p000_phi00p00.eqarea',
-                 mach=1.6, phi=0, atmosphere_input=None):
+                 mach=1.6, phi=0, atmosphere_input=None, elevation = 0):
 
         self.CASE_DIR = case_dir
         SBOOM_EXEC = sboom_exec
@@ -66,6 +66,7 @@ class EquivArea:
         self.deformation = deformation
         self.atmosphere_input = atmosphere_input
         self.eqa_filename = area_filename
+        self.elevation = elevation
         R_over_L = 5
 
         # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
@@ -84,7 +85,7 @@ class EquivArea:
         self._sboom.set(mach_number=self.MACH,
                         altitude=self.altitude,
                         propagation_start=R_over_L*REF_LENGTH*3.28084,
-                        altitude_stop=0.,
+                        altitude_stop=self.elevation,
                         output_format=0,
                         input_xdim=2,
                         azimuthal_angles = self.PHI,
@@ -101,7 +102,7 @@ class EquivArea:
 
                 self._sboom.set(input_temp=weather['temperature'],
                                 input_wind=wind,
-                                input_humidity=weather['humidity'])   
+                                input_humidity=weather['humidity'])
             else:
                 self._sboom.set(input_temp=weather['temperature'],
                                 input_humidity=weather['humidity'])
@@ -177,10 +178,10 @@ class EquivArea:
 class AreaConv:
     '''Class for converting a near-field dp/p to an equivalent area distribution.
 
-    This code is based on Eq.(11) found in the reference by Wu Li and Sriram 
-    Rallabhandi included below. This tool can be used to conver a 
+    This code is based on Eq.(11) found in the reference by Wu Li and Sriram
+    Rallabhandi included below. This tool can be used to conver a
     supersonic aircrafts nearfield pressure signature, dp/p(x), to an equivalent
-    area distribution representation of the aircraft. The user simply needs to 
+    area distribution representation of the aircraft. The user simply needs to
     create an instance of the area conversion class and use the class run method.
 
     Methods
@@ -193,14 +194,14 @@ class AreaConv:
     ------
     The input file should contain two arrays of data, the first being sensor
     locations and the second being the dp/p(x) values for each location. The
-    user only needs to specify the filename of the dp/p distribution when 
+    user only needs to specify the filename of the dp/p distribution when
     creating an instance of the class. Defaults are set for the aircraft
     flight parameters but can easily be changed by passing the desired parameters
     at the creation of the class.
 
     To generate the equivalent area distribution and save the data to file,
      the user needs to call the class run method with a desired output filename.
-    The user should be aware of the units that are used in the dp/p(x) 
+    The user should be aware of the units that are used in the dp/p(x)
     distribution. The area returned will be the square of the x position units.
     Please ignore the runtime warning for an invalid value encountered in
     taking the sqrt, this is expected and addressed within the code.
@@ -210,24 +211,24 @@ class AreaConv:
     numpy.isnan : Returns indices of array holding nan
     scipy.integrate.trapz : Performs trapezoidal numerical integration
     numpy.newaxis: and the use of None in array slicing
-    
+
     References
     -----------
     Li, W., and Rallabhandi, S. K., “Inverse Design of Low-Boom Supersonic Concepts
     Using Reversed Equivalent-Area Targets,”Journal of Aircraft, Vol. 51, No. 1,
     2014, pp. 29–36.
-    
+
     Example
     --------
-    from rapidboom import AreaConv 
-    
-    class_name = AreaConv(dp_filename = 'Euler_UndertrackNF_RL5', mach = 1.6, 
+    from rapidboom import AreaConv
+
+    class_name = AreaConv(dp_filename = 'Euler_UndertrackNF_RL5', mach = 1.6,
                           ref_length = 32.92, gamma = 1.4, r_over_l = 5)
     eq_area_dist = class_name.run(save_filename = 'test.eqarea', write = True)
 
     '''
 
-    def __init__(self, dp_filename, mach = 1.6, ref_length = 32.92, 
+    def __init__(self, dp_filename, mach = 1.6, ref_length = 32.92,
                  gamma = 1.4, r_over_l = 5):
         '''Initializes equivalent area class instance.
 
@@ -264,7 +265,7 @@ class AreaConv:
         coeff1_denom = self.GAMMA*(self.MACH**2)
         coeff1 = coeff1_num/coeff1_denom
 
-        # performs integration and calculates EqA at each dp/p location 
+        # performs integration and calculates EqA at each dp/p location
         integrand = (self._dp_p[None,:])*(np.sqrt(self._x[:,None] - self._x[None,:]))
         print("Expected RuntimeWarning, please ignore.")
         integrand[np.isnan(integrand)] = 0 # replaces nan with 0
