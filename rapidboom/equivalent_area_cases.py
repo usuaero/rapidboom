@@ -54,11 +54,12 @@ class EquivArea:
     def __init__(self, case_dir='./', sboom_exec='sboom_linux',
                  weather='standard', altitude=50000, deformation='gaussian',
                  area_filename = 'mach1p600_aoa0p000_phi00p00.eqarea',
-                 mach=1.6, phi=0, atmosphere_input=None, elevation = 0):
+                 mach=1.6, phi=0, ref_length = 32.92, r_over_l = 5,
+                 atmosphere_input=None, elevation = 0):
 
         self.CASE_DIR = case_dir
         SBOOM_EXEC = sboom_exec
-        REF_LENGTH = 32.92
+        REF_LENGTH = ref_length
         self.MACH = mach
         self.PHI = phi
         self.gamma = 1.4
@@ -67,7 +68,7 @@ class EquivArea:
         self.atmosphere_input = atmosphere_input
         self.eqa_filename = area_filename
         self.elevation = elevation
-        R_over_L = 5
+        R_over_L = r_over_l
 
         # INITIALIZE MODELS/TOOLS OF THE CASE AND SET ANY CONSTANT PARAMETERS
         # import equivalent area from file
